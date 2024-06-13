@@ -63,3 +63,21 @@ def get_data_iters(config):
 
     return train_iter, eval_iter
 
+
+def get_data_iter(data_config, subset):
+    """
+    Get a iterable to data, whose next() method returns a batch of data.
+    Example: data_iter = get_data_iter(config.train_data, 'train')
+    """
+    assert subset in ('train', 'test')
+    ds, root, ext_fn = get_dataset_local(data_config.data_spec, subset=subset)
+
+    transform = build_transform_fn(data_config)
+    ds = IDFCompressLocalDataset(root, ds, ext_fn, transform)
+
+    shuffle = subset == 'test'
+    data_iter = DataLoader(ds, batch_size=data_config.batch_size, shuffle=shuffle,
+                            pin_memory=data_config.pin_memory, num_workers=data_config.num_workers)
+
+    return data_iter
+

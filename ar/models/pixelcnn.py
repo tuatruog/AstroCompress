@@ -689,7 +689,7 @@ class Model(nn.Module):
 
 
     @torch.no_grad()
-    def evaluate(self, batch):
+    def evaluate(self, batch, *, patch_size=None, chunk_size=None):
         from utils.img_utils import pad_img, crop_img
         x, ids = batch     # (batch of input images, batch of file ids)
 
@@ -698,6 +698,10 @@ class Model(nn.Module):
             'bpds': [],
             'bpps': [],
         }
+        if patch_size is None:
+            patch_size = self.config.eval_data.patch_size
+        if chunk_size is None:
+            chunk_size = self.config.eval_data.chunk_size
         for (img, _) in zip(x, ids):
             # We break the input img into patches and evaluate
             # on sub-patches to avoid running out of memory on large images.
@@ -726,6 +730,9 @@ class Model(nn.Module):
 
         scalar_metrics = {key: np.mean(tensor_metrics[key]) for key in ('bpds', 'bpps')}
         scalar_metrics['loss'] = scalar_metrics['bpds']  # For tensorboard logging, to compare with train loss.
+        if len(ids) == 1:   # For per-image results.
+            scalar_metrics['id'] = ids[0]   # For bookkeeping.
+            scalar_metrics['cr'] = self.n_bits / scalar_metrics['bpds']    # compression ratio
 
         metrics = dict(scalars=scalar_metrics, tensors=tensor_metrics)
         return metrics

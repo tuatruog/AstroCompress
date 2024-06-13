@@ -414,12 +414,13 @@ def _extract_sdss_4d_res(image):
     return res
 
 
-def get_dataset_local(dataset, split_ratio=0.85):
+def get_dataset_local(dataset, subset=None, train_val_split_ratio=0.85):
     """
     Librarian function for getting datasets from cloned repos and extractor function.
 
     :param dataset:
-    :param split_ratio:
+    :param subset: 'train' or 'test'; if provided, will only return the subset.
+    :param train_val_split_ratio: (1 - split_ratio) is the ratio of validation set.
     :return:
     """
     assert dataset in DATASET, f'Invalid dataset {dataset}. Must be one of {DATASET}.'
@@ -508,10 +509,19 @@ def get_dataset_local(dataset, split_ratio=0.85):
     with jsonlines.open(os.path.join(root, f'splits/{DATA_PROFILE}_test.jsonl')) as samples:
         test_ids = [sample[key] for sample in samples if filter_fn(sample)]
 
-    train_ids, val_ids = split_train_val(train_ids, split_ratio)
+    if subset == 'train':
+        # Then no splitting into train and val.
+        return train_ids, root, extract_fn
+    elif subset == 'test':
+        return test_ids, root, extract_fn
+    else:
+        assert subset is None
+
+    train_ids, val_ids = split_train_val(train_ids, train_val_split_ratio)
 
     if test_limit < len(test_ids):
         test_ids = test_ids[:test_limit]
+
 
     return (train_ids, val_ids, test_ids), root, extract_fn
 

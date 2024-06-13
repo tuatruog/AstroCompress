@@ -182,7 +182,7 @@ class Experiment:
     """Boilerplate for training and evaluating models. Keeps track of config and data etc.
     Based on vdm/experiment.py"""
 
-    def __init__(self, config: ml_collections.ConfigDict):
+    def __init__(self, config: ml_collections.ConfigDict, skip_data_loading=False):
         self.config = config
 
         # Set seed before initializing model.
@@ -201,17 +201,22 @@ class Experiment:
         logging.info("Using device: %s", config.device)
         logging.info("Run info:\n%s", pprint.pformat(run_utils.get_run_info()))
 
-        # Initialize data iterators.
-        logging.info('=== Initializing dataset ===')
-        train_iter, eval_iter = data_lib.get_data_iters(config)
-        self.train_iter = data_lib.cycle(train_iter)  # Repeat infinitely.
-        self.eval_iter = eval_iter
+        if skip_data_loading:
+            logging.info('=== Skipping data loading ===')
+            self.train_iter = self.eval_iter = None
+        else:
+            # Initialize data iterators.
+            logging.info('=== Initializing dataset ===')
+            train_iter, eval_iter = data_lib.get_data_iters(config)
+            self.train_iter = data_lib.cycle(train_iter)  # Repeat infinitely.
+            self.eval_iter = eval_iter
 
         # Create/initialize model
         logging.info('=== Creating model/optimizer ===')
         self.model = mutils.create_model(config)
         self.model = self.model.to(config.device)
-        _ = self.model.compute_loss(next(self.train_iter), training=True)  # Dummy initialize for LazyModules.
+        if not skip_data_loading:
+            _ = self.model.compute_loss(next(self.train_iter), training=True)  # Dummy initialize for LazyModules.
         self.ema = ExponentialMovingAverage(self.model.parameters(), decay=config.model.ema_rate)
         self.optimizer = get_optimizer(config, self.model.parameters())
         # self.optimizer = get_optimizer(
@@ -428,14 +433,7 @@ class Experiment:
 
 
 # Some quick tools below.
-
-import json
-
-
-def load_json(path):
-    with open(path, 'r') as f:
-        return json.load(f)
-
+from ar.common.run_utils import load_json
 
 def load_workdir_config(workdir, load_latest_ckpt=True, verbose=False):
     """
@@ -466,7 +464,7 @@ def load_workdir_config(workdir, load_latest_ckpt=True, verbose=False):
     return config
 
 
-def load_experiment(workdir, load_latest_ckpt=True, verbose=False):
+def load_experiment(workdir, load_latest_ckpt=True, verbose=False, skip_data_loading=True):
     """
 
     :param workdir: e.g., 'train_xms/21965/wid=0-mshyper-rd_lambda=0.08-latent_ch=320-base_ch=192'.
@@ -475,5 +473,5 @@ def load_experiment(workdir, load_latest_ckpt=True, verbose=False):
     :return:
     """
     config = load_workdir_config(workdir, load_latest_ckpt, verbose)
-    expm = Experiment(config)
+    expm = Experiment(config, skip_data_loading=skip_data_loading)
     return expm

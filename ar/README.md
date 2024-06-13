@@ -1,5 +1,7 @@
 Custom code for model training/evaluation with Slurm integration and experiment tracking.
 
+Currently only implements PixelCNN++.
+
 ## Code structure
 - `common`: library/template/util code for train/eval/sampling/etc.
 - `models`: model definitions. Under heavy construction.
@@ -20,6 +22,12 @@ python -m ar.launch.py --main ar.train --config ar/configs/pcnn_2d_i8.py
 
 (additional slurm options can be specified in --sargs, e.g., '--gres=gpu:2' to override the default and request 2 GPUs instead of 1)
 
+
+Evaluating a trained model on a given dataset (local):
+```
+python -m ar.eval --workdir my_workdir --dataset lco
+```
+where `my_workdir` is created from training and may look like `expms/214971/wid=0-pixelcnn-data=lco-split_bits=0-model=pixelcnn-nr_resnet=5-nr_filters=160-nr_mix=12`.
 
 
 ## Setup
@@ -44,6 +52,5 @@ Code:
 
 - https://github.com/yang-song/score_sde_pytorch (for training template and layout of project and config scripts)
 - https://github.com/google-research/vdm (for offical VDM in jax, training template and project layout)
-- https://github.com/addtt/variational-diffusion-models (for VDM model/U-net in torch)
 
 

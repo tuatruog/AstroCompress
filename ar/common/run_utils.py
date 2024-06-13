@@ -223,6 +223,19 @@ class MyJSONEncoder(json.JSONEncoder):
             return super(MyJSONEncoder, self).default(obj)
 
 
+import json
+
+
+def load_json(path):
+    with open(path, 'r') as f:
+        return json.load(f)
+
+
+def dump_json(obj, path):
+  with open(path, 'w') as f:
+    return json.dump(obj, f, indent=2)
+
+
 # https://stackoverflow.com/questions/14989858/get-the-current-git-hash-in-a-python-script
 import subprocess
 
