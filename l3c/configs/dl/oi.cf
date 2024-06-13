@@ -1,0 +1,13 @@
+batchsize_train = 30
+batchsize_val = 30
+crop_size = 32
+
+max_epochs = None
+
+image_cache_pkl = ''
+train_imgs_glob = ''
+val_glob = None
+
+val_glob_min_size = None  # for cache_p
+num_val_batches = 100
+
