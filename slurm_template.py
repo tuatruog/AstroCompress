@@ -2,7 +2,6 @@ template = """#!/bin/bash
 
 #SBATCH --job-name={job_name}
 #SBATCH --output=/extra/ucibdl1/shared/data/astrocomp/job-log/{config_id}.out
-#SBATCH --error=/extra/ucibdl1/shared/data/astrocomp/job-log/{config_id}.err
 #SBATCH --gres=gpu:1
 #SBATCH --mail-type=END,FAIL
 #SBATCH --mail-user=tuannt2@uci.edu
