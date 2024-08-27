@@ -9,7 +9,6 @@
 *.gz*
 *pth*
 *.npy*
-data_configs.py
 !hst_results.txt
 /pixelcnn/runs/
 /data/
