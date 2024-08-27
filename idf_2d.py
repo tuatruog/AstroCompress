@@ -5,7 +5,7 @@ import os
 
 from datetime import datetime
 from utils.data_loader import LCO, KECK, HST, JWST, SDSS
-from experiments.slurm_template import template
+from slurm_template import template
 
 DATASET = 'dataset'
 CHANNELS = 'n_channels'
