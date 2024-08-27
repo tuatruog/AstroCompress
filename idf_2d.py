@@ -122,8 +122,10 @@ if __name__ == "__main__":
     for config in configs:
         id = str(uuid.uuid4())[:8]
         job_name = id
+        output_dir = f'/extra/ucibdl1/shared/data/astrocomp/snapshots/idf/{id}'
+        os.mkdir(output_dir)
         srun_command = (f'srun python3 train_idf.py --dataset {config[DATASET]} '
-                        f'--out_dir /extra/ucibdl1/shared/data/astrocomp/snapshots/idf/{id} '
+                        f'--out_dir {output_dir} '
                         f'--input_size {config[PATCH_SIZE][0]},{config[PATCH_SIZE][1]} '
                         f'{"--split_bits " if config[CHANNELS] == 2 else ""}'
                         f'--random_crop --flip_horizontal 0.5 '
