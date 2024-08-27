@@ -124,7 +124,7 @@ if __name__ == "__main__":
         id = str(uuid.uuid4())[:8]
         job_name = id
         output_dir = f'/extra/ucibdl1/shared/data/astrocomp/snapshots/idf/{now}/{id}'
-        os.mkdir(output_dir)
+        os.makedirs(output_dir)
         srun_command = (f'srun python3 train_idf.py --dataset {config[DATASET]} '
                         f'--out_dir {output_dir} '
                         f'--input_size {config[PATCH_SIZE][0]},{config[PATCH_SIZE][1]} '
