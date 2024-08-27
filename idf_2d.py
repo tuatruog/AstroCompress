@@ -114,7 +114,8 @@ if __name__ == "__main__":
 
     print('Outputting configurations to files ...')
 
-    base_dir = f'/home/tuannt2/projects/astro-compression/job-config/{datetime.now().strftime("%m_%d_%H_%M")}'
+    now = datetime.now().strftime("%m_%d_%H_%M")
+    base_dir = f'/home/tuannt2/projects/astro-compression/job-config/{now}'
     os.mkdir(base_dir)
 
     job_mapping = {}
@@ -122,7 +123,7 @@ if __name__ == "__main__":
     for config in configs:
         id = str(uuid.uuid4())[:8]
         job_name = id
-        output_dir = f'/extra/ucibdl1/shared/data/astrocomp/snapshots/idf/{id}'
+        output_dir = f'/extra/ucibdl1/shared/data/astrocomp/snapshots/idf/{now}/{id}'
         os.mkdir(output_dir)
         srun_command = (f'srun python3 train_idf.py --dataset {config[DATASET]} '
                         f'--out_dir {output_dir} '
