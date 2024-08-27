@@ -2,6 +2,7 @@ import math
 import itertools
 import uuid
 import os
+import json
 
 from datetime import datetime
 from utils.data_loader import LCO, KECK, HST, JWST, SDSS
@@ -116,6 +117,8 @@ if __name__ == "__main__":
     base_dir = f'/home/tuannt2/projects/astro-compression/job-config/{datetime.now().strftime("%m_%d_%H_%M")}'
     os.mkdir(base_dir)
 
+    job_mapping = {}
+
     for config in configs:
         id = str(uuid.uuid4())[:8]
         job_name = id
@@ -136,6 +139,9 @@ if __name__ == "__main__":
                         f'--evaluate_interval_epochs {config[EVAL_INTERVAL_EPOCH]} '
                         f'--epoch_log_interval {config[EPOCH_LOG_INTERVAL]}')
         job_str = template.format(job_name=id, config_id=f'{id}', srun_command=srun_command)
-
+        job_mapping[id] = srun_command
         with open(base_dir + f'/{id}.job', 'w') as f:
             f.write(job_str)
+
+    with open(base_dir + f'/job_mapping.json', 'w') as f:
+        json.dump(job_mapping, f)
