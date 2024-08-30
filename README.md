@@ -37,6 +37,9 @@ These alias are used as the name for the argument `--dataset` in our training an
 Note that these dataset will need to be downloaded locally and update the `data_configs.py` to the 
 root of your local the data directory before using the benchmark commands.
 
+The user can change the saved data directories in the `data_configs.py` file if desired, or if there are any path errors. 
+Otherwise, the directory defined in `data_configs.py` will be used. For locally downloaded datasets, which is what we recommend: 
+Make sure that any datasets are downloaded to the specified directory, i.e. `GBI-16-4D/` could be within the root directory in `data_configs.LOCAL_DATA_ROOT`.
 <br>
 
 #### Integer Discrete Flows (IDF) [[Paper]](https://arxiv.org/pdf/1905.07376) [[Github]](https://github.com/jornpeters/integer_discrete_flows)
