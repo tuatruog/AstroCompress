@@ -11,6 +11,7 @@ template = """#!/bin/bash
 #SBATCH --mem=128G
 #SBATCH --time=72:00:00
 #SBATCH --partition=ava_m.p
+#SBATCH --nodelist=ava-m{node}
 
 source /home/tuannt2/.bashrc     # the ICS default .bashrc makes 'module' available
 module load conda
@@ -18,6 +19,7 @@ module load slurm
 
 # for Tensorflow
 export TF_CPP_MIN_LOG_LEVEL=2   # ignore TF libpng warnings: https://github.com/tensorflow/tensorflow/issues/31870
+export TF_FORCE_GPU_ALLOW_GROWTH=true  # Prevent TF from grabbing all GPU mem immediately. https://stackoverflow.com/a/55541385
 
 source activate astro-compression
 conda env list

@@ -1,8 +1,12 @@
 import math
 import itertools
+import random
 import uuid
 import os
 import json
+import argparse
+import subprocess
+import shlex
 
 from datetime import datetime
 from utils.data_loader import LCO, KECK, HST, JWST, SDSS
@@ -100,7 +104,7 @@ def get_model_configs():
                 (config[N_FLOWS] == 4 and config[N_NET_CHANNELS] == 512) or
                 (config[N_FLOWS] == 8 and config[N_NET_CHANNELS] == 256) or
                 (DENSENET_DEPTH in config and config[N_LEVELS] == 4 and config[DENSENET_DEPTH] == 8) or
-                (config[DATASET] == LCO and config[N_FLOWS] == 4) or
+                (config[DATASET] == LCO and config[N_FLOWS] == 8) or
                 (config[DATASET] == LCO and config[N_NET_CHANNELS] == 512) or
                 (DENSENET_DEPTH in config and config[DATASET] == LCO and config[DENSENET_DEPTH] == 4)):
             augment_config(config)
@@ -108,7 +112,7 @@ def get_model_configs():
     return final_configs
 
 
-if __name__ == "__main__":
+def generate_configs(args):
     configs = get_model_configs()
     print(f'Generated {len(configs)} configurations')
 
@@ -148,3 +152,72 @@ if __name__ == "__main__":
 
     with open(base_dir + f'/job_mapping.json', 'w') as f:
         json.dump(job_mapping, f)
+
+
+def schedule_eval(args):
+    job_mapping_path = f"/home/tuannt2/projects/astro-compression/job-config/{args.job_cfg_date}/job_mapping.json"
+    with open(job_mapping_path, 'r') as f:
+        job_mapping = json.load(f)
+
+    base_dir = f"/home/tuannt2/projects/astro-compression/job-config/{args.job_cfg_date}/eval"
+    model_dir = f"/extra/ucibdl1/shared/data/astrocomp/snapshots/idf/{args.job_cfg_date}/{args.job_id}"
+    for root, dirs, _ in os.walk(model_dir):
+        if len(dirs) != 1:
+            print("There are more than 1 directory for this job. Please remove unused directory")
+            return
+        model_dir = os.path.join(model_dir, dirs[0]) + "/"
+        break
+    print(f"Using model at directory: {model_dir}")
+
+
+    arg_dict = parse_cmd(job_mapping[args.job_id])
+
+    srun_command = (f"srun python3 evaluate_idf.py --snap_dir {model_dir} "
+                    f"--epoch {args.iter} "
+                    f"--dataset {arg_dict['dataset']} ")
+
+    job_id = f"{args.job_id}_{args.iter}"
+    job_str = template.format(job_name=job_id, config_id=f"eval/{job_id}", srun_command=srun_command, node=args.node)
+    job_path = os.path.join(base_dir, f"{job_id}.job")
+    with open(job_path, 'w') as f:
+        f.write(job_str)
+
+    stdout, stderr = run_command(f"sbatch {job_path}")
+    print("Output:", stdout)
+    print("Error:", stderr)
+
+
+def parse_cmd(cmd):
+    args = shlex.split(cmd)  # Splits the command string like a shell would
+    arg_dict = {}
+
+    key = None
+    for arg in args:
+        if arg.startswith("--"):
+            # If a new flag starts, store the previous key-value pair if exists
+            key = arg.lstrip("--")
+            # Initialize with True if it's a flag with no value
+            arg_dict[key] = True
+        elif key:
+            # If the flag has a value, update the value in the dictionary
+            arg_dict[key] = arg
+            key = None
+
+    return arg_dict
+
+
+def run_command(command):
+    result = subprocess.run(command, shell=True, capture_output=True, text=True)
+    return result.stdout, result.stderr
+
+
+if __name__ == "__main__":
+    parser = argparse.ArgumentParser(description="IDF 2D param searching script")
+    parser.add_argument("job_cfg_date", type=str, help="Job config creation date in %m_%d_%H_%M format")
+    parser.add_argument("job_id", type=str, help="Job ID")
+    parser.add_argument("iter", type=str, help="Iteration for evaluation")
+    parser.add_argument("node", type=int, help="Node")
+    args = parser.parse_args()
+
+    # generate_configs(args)
+    schedule_eval(args)

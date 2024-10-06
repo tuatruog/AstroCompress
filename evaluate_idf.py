@@ -15,7 +15,7 @@ from utils.img_utils import pad_img, crop_img
 def main(args):
     parser = argparse.ArgumentParser(description='IDF evaluating for astronomical images neural compression')
 
-    parser.add_argument('--out_dir', type=str, default=None,
+    parser.add_argument('--snap_dir', type=str, default=None,
                         help='snapshot directory for the model to evaluate.')
 
     parser.add_argument('--epoch', type=int, default=1,
